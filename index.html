@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>2020 Freedom Cell Survey</title>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        /* Slide-in animation */
+        .question-card {
+            opacity: 0;
+            transform: translateX(100%);
+            animation: slideIn 0.5s ease-out forwards;
+        }
+        /* Stagger animation for each card within a section */
+        .question-card {
+            animation-delay: calc(0.1s * var(--card-index));
+        }
+        @keyframes slideIn {
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+        /* Button styling */
+        .btn-check:checked + .btn {
+            background-color: #0d6efd;
+            color: white;
+        }
+        /* Ensure accordion body has padding */
+        .accordion-body {
+            padding: 1rem;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="#">Freedom Cell Survey 2020</a>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="container my-5">
+        <h1 class="text-center mb-4">2020 Freedom Cell Survey</h1>
+        <!-- Progress Bar -->
+        <div class="mb-4">
+            <h5>Progress: <span id="progress-text">0/100 questions answered</span></h5>
+            <div class="progress">
+                <div id="progress-bar" class="progress-bar" role="progressbar" style="width: 0%;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">0%</div>
+            </div>
+        </div>
+        <div class="accordion" id="surveyAccordion"></div>
+        <!-- Action Buttons -->
+        <div class="text-center mt-4">
+            <button class="btn btn-primary me-2" onclick="submitSurvey()">Submit Survey</button>
+            <button class="btn btn-danger me-2" onclick="resetSurvey()">Reset Responses</button>
+            <button class="btn btn-secondary" onclick="downloadResponses()">Download Responses</button>
+        </div>
+    </div>
+
+    <!-- Results Modal -->
+    <div class="modal fade" id="resultsModal" tabindex="-1" aria-labelledby="resultsModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="resultsModalLabel">Survey Results</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <h6>Section Results</h6>
+                    <div id="section-results"></div>
+                    <hr>
+                    <h6>Total Across All Sections</h6>
+                    <p>Agree: <span id="total-agree">0</span></p>
+                    <p>Disagree: <span id="total-disagree">0</span></p>
+                    <p>I'm Not Sure: <span id="total-notsure">0</span></p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap 5 JS and Popper.js -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Sections and questions array
+        const sections = [
+            {
+                name: "A Nation in Distress",
+                questions: [
+                    { id: 1, text: "Is our nation in distress?" },
+                    { id: 2, text: "Is the left destroying America, and should We the People reject it?" },
+                    { id: 3, text: "Is radical environmentalism harming America, and should We the People oppose it?" },
+                    { id: 4, text: "Is globalism undermining America, and should We the People reject it?" },
+                    { id: 5, text: "Is the entrenched political class damaging America, and should We the People oppose it?" },
+                    { id: 6, text: 'Does a "deep state" within government pose a clear danger, requiring vigilance to protect our constitutional Republic?' },
+                    { id: 7, text: "Do lawless actions in cities like Baltimore, Ferguson, Berkeley, Charlottesville, Portland, Minneapolis, and Seattle, along with sanctuary cities/states and elite-fomented violence, threaten our nation?" },
+                    { id: 8, text: "Do big tech and a complicit government erode privacy, free speech, and association, requiring regulation to protect these rights?" }
+                ]
+            },
+            {
+                name: "A Call to Action",
+                questions: [
+                    { id: 9, text: 'Should We the People rally behind a bold plan to transform the "silent majority" into a "clamoring majority" through unified organization?' },
+                    { id: 10, text: "Should we elect more representatives at all government levels who share Freedom Caucus values and stand firm on principles?" },
+                    { id: 11, text: "Should We the People form a third party within the Republican Party, like the Freedom Caucus, to transform it by electing conservatives at all levels?" },
+                    { id: 12, text: "Should the Republican Party select candidates via closed caucus or convention?" },
+                    { id: 13, text: "Does lack of election integrity threaten our constitutional Republic?" },
+                    { id: 14, text: "Should election integrity be restored by requiring photo/biometric voter ID, eliminating early/absentee voting, using paper ballots, and ensuring transparency with streaming video?" }
+                ]
+            },
+            {
+                name: "Restore Federalism",
+                questions: [
+                    { id: 15, text: "Has the federal government usurped state power, and should states and people reclaim it?" },
+                    { id: 16, text: "Should states petition Congress for a Convention of States to propose amendments?" },
+                    { id: 17, text: "Should a Convention of States have no limits on amendment proposals, per Article V?" },
+                    { id: 18, text: "Should deadlines for ratifying constitutional amendments not be extended?" },
+                    { id: 19, text: "Can states withdraw or reverse their ratification votes before an amendment is ratified by three-fourths of states?" },
+                    { id: 20, text: "Should states directly propose amendments via a 2/3 state legislature petition, with ratification by 3/4 state conventions?" },
+                    { id: 21, text: "Should the Seventeenth Amendment be repealed?" },
+                    { id: 22, text: "Should states nullify federal actions with a 2/3 state vote?" },
+                    { id: 23, text: "Should states remove federal officers with a 2/3 state vote?" },
+                    { id: 24, text: "Do states have a natural right to secede, and should this right and process be affirmed?" }
+                ]
+            },
+            {
+                name: "Restore National Sovereignty",
+                questions: [
+                    { id: 25, text: "Should national security be the federal government’s top priority, rebuilding unmatched military strength?" },
+                    { id: 26, text: "Should the U.S. declare war on radical Islamic terrorism, granting the president broad authority for asymmetric operations?" },
+                    { id: 27, text: "Has the federal government failed to protect states from illegal border crossings and drugs, per Article IV, Section 4?" },
+                    { id: 28, text: "Should the U.S. militarize the Mexican border with military, National Guard, and militias, plus build walls and tech barriers?" },
+                    { id: 29, text: "Should the U.S. act unilaterally against Mexican drug cartels due to their ties to terrorism and harm to America?" },
+                    { id: 30, text: "Should illegal immigrants receive no amnesty, with enforcement to encourage self-deportation?" },
+                    { id: 31, text: "Should those granted amnesty be denied citizenship and voting rights?" },
+                    { id: 32, text: "Should naturalized citizens who don’t assimilate or support sharia law lose citizenship and face deportation?" },
+                    { id: 33, text: "Should the U.S. impose a temporary immigration moratorium to counter the 1965 Immigration Act’s effects?" },
+                    { id: 34, text: "Should the U.S. withdraw from the UN, expel it from U.S. soil, and encourage other nations to do the same?" },
+                    { id: 35, text: "Does the U.S. have a duty to promote liberty and resist global tyranny?" },
+                    { id: 36, text: "Should the U.S. favor nations moving toward liberty and disfavor those increasing tyranny?" },
+                    { id: 37, text: "Should the U.S. lead by example in expanding personal and economic liberty while humbly encouraging other nations to follow?" },
+                    { id: 38, text: "Should the U.S. pursue secure, strategic trade instead of free or fair trade?" },
+                    { id: 39, text: "Should the U.S. establish American Enterprise Zones in strategic nations via 99-year leases for mutual benefit?" },
+                    { id: 40, text: "Should the U.S. unwaveringly support Israel’s sovereignty, security, and self-determination?" },
+                    { id: 41, text: "Should the U.S. counter Russia’s expansionist ambitions in Syria, Ukraine, Crimea, and beyond?" },
+                    { id: 42, text: "Should the U.S. counter China’s economic warfare with strategic trade and restored economic liberty?" }
+                ]
+            },
+            {
+                name: "Restore Individual Liberty",
+                questions: [
+                    { id: 43, text: "Should all life be protected from conception to natural death, banning abortion, assisted suicide, and euthanasia?" },
+                    { id: 44, text: "Is marriage a God-ordained natural right between a man and woman, requiring no government approval?" },
+                    { id: 45, text: "Should a constitutional amendment define marriage as between a man and woman?" },
+                    { id: 46, text: "Should individuals and businesses be protected from engaging in transactions violating their beliefs?" },
+                    { id: 47, text: "Does the Second Amendment acknowledge a natural right to keep and bear arms?" },
+                    { id: 48, text: "Should citizens bear arms openly or concealed anywhere, except in secured venues with armed law enforcement?" },
+                    { id: 49, text: "Should constitutional carry and national reciprocity be enacted?" },
+                    { id: 50, text: "Should the right to keep and bear arms be free from taxes, licenses, or registration?" },
+                    { id: 51, text: "Should all property, estate, and personal taxes be eliminated?" },
+                    { id: 52, text: "Should wage and price controls, including minimum wage, be eliminated?" },
+                    { id: 53, text: "Should all citizens have the right to work without compulsory union membership or dues?" }
+                ]
+            },
+            {
+                name: "Restore Limited Government",
+                questions: [
+                    { id: 54, text: "Should all income be taxed at a flat rate of 15% or less, with no exemptions or deductions?" },
+                    { id: 55, text: "Should a 5% cap be set for any national sales tax, alongside a 15% flat income tax?" },
+                    { id: 56, text: "Should corporate dividends from taxed income be tax-free to shareholders?" },
+                    { id: 57, text: "Should a balanced budget amendment be ratified?" },
+                    { id: 58, text: "Should the president have line-item veto power over Congressional expenditures?" },
+                    { id: 59, text: "Should Congress members be limited to 8 years and Senators to 12 years?" },
+                    { id: 60, text: "Should presidents be limited to one 6-year term, plus up to 2 years of another’s term?" },
+                    { id: 61, text: "Should federal employees be at-will and prohibited from unionizing for collective bargaining?" },
+                    { id: 62, text: "Should the IRS be abolished?" },
+                    { id: 63, text: "Should federal spending be cut by exiting unconstitutional activities infringing on states’ rights?" },
+                    { id: 64, text: "Should zero-based budgeting reauthorize federal spending every two years to curb waste?" },
+                    { id: 65, text: "Should non-defense spending be cut by at least 75%, prioritizing national defense?" },
+                    { id: 66, text: "Has the federal government unconstitutionally redistributed wealth, fostering dependency?" },
+                    { id: 67, text: "Is it wrong to classify defense spending as discretionary and non-defense as nondiscretionary?" },
+                    { id: 68, text: "Should Social Security be dismantled equitably, including for those who opted out?" },
+                    { id: 69, text: "Should Medicare and Medicaid be transferred to states, which should pursue free-market healthcare?" },
+                    { id: 70, text: "Should federal welfare programs like unemployment and food stamps be dismantled?" },
+                    { id: 71, text: "Should the federal government stop subsidizing cities and promote decentralized technologies?" }
+                ]
+            },
+            {
+                name: "Unleash Free-Market Capitalism",
+                questions: [
+                    { id: 72, text: "Do free markets with abundant resources enable prosperity, while tyranny causes poverty?" },
+                    { id: 73, text: "Is deflation natural in free markets, while inflation stems from suppressed output and capital control?" },
+                    { id: 74, text: "Should currency issuance be tied to gold reserves, with no reduction in gold holdings?" },
+                    { id: 75, text: "Should the Federal Reserve and fractional banking be eliminated?" },
+                    { id: 76, text: "Should citizens freely transact with cash, gold, cryptocurrencies, or barter?" },
+                    { id: 77, text: "Should individuals invest in small businesses via blockchain equities without SEC regulation?" },
+                    { id: 78, text: "Is a global financial collapse inevitable due to spiraling debt ($146T in 2007 to $233T in 2014)?" },
+                    { id: 79, text: "Does escalating global debt enslave people, likely intentionally by elites consolidating power?" },
+                    { id: 80, text: "Do negative interest rates, bail-ins, and special drawing rights signal elite plans for a financial reset?" },
+                    { id: 81, text: "Should We the People preempt an elite-driven financial reset with one promoting economic liberty?" },
+                    { id: 82, text: "Should the U.S. lead a global Year of Jubilee, erasing debt and abolishing central banks?" },
+                    { id: 83, text: "Should the U.S. declare a unilateral Year of Jubilee, canceling debt and outlawing future debt?" },
+                    { id: 84, text: "In a Year of Jubilee, should consumer debt and owner-occupied home mortgages be forgiven?" },
+                    { id: 85, text: "Should multifamily mortgages convert to 50% equity, with tenant protections for one year?" },
+                    { id: 86, text: "Should business/non-residential debt convert to equity based on prior debt ratios, unless agreed otherwise?" },
+                    { id: 87, text: "In a Year of Jubilee, should wage/price rigidity and future claims like pensions be eliminated?" },
+                    { id: 88, text: "Should Congress limit federal court jurisdiction over citizenship, immigration, elections, marriage, and abortion?" },
+                    { id: 89, text: "Should free-market energy policies avoid subsidies and penalties, embracing all energy sources?" },
+                    { id: 90, text: "Should policy encourage decentralized power generation and grid hardening against EMP attacks?" },
+                    { id: 91, text: "Should carbon dioxide no longer be classified as a pollutant?" },
+                    { id: 92, text: "Should vehicle fuel efficiency standards be eliminated?" },
+                    { id: 93, text: "Should Obamacare be repealed to allow free-market healthcare?" },
+                    { id: 94, text: "Should government be removed as a third-party payer in healthcare?" },
+                    { id: 95, text: "Should health insurance policies be made illegal to eliminate third-party payers?" },
+                    { id: 96, text: "Will eliminating third-party payers lower healthcare costs and expand options for catastrophic care?" },
+                    { id: 97, text: "Should government exit education, allowing parents to educate children per their values?" },
+                    { id: 98, text: "Should children be allowed to work, with safety assured, to learn the value of hard work?" },
+                    { id: 99, text: "Should property rights be restored by eliminating taxes, limiting zoning, and removing impediments?" },
+                    { id: 100, text: "Should the BLM be abolished and unjustified federal land returned to states?" }
+                ]
+            }
+        ];
+
+        // Response tracking
+        let responses = {};
+        let sectionCounts = sections.map(section => ({
+            name: section.name,
+            agree: 0,
+            disagree: 0,
+            notSure: 0
+        }));
+
+        // Load saved responses from localStorage
+        const savedResponses = JSON.parse(localStorage.getItem('survey-responses')) || {};
+        const savedCounts = JSON.parse(localStorage.getItem('survey-counts')) || sectionCounts;
+        responses = { ...savedResponses };
+        sectionCounts = savedCounts;
+
+        // Update progress bar
+        const updateProgress = () => {
+            const answered = Object.keys(responses).length;
+            const total = 100;
+            const percentage = Math.round((answered / total) * 100);
+            document.getElementById('progress-text').textContent = `${answered}/100 questions answered`;
+            const progressBar = document.getElementById('progress-bar');
+            progressBar.style.width = `${percentage}%`;
+            progressBar.textContent = `${percentage}%`;
+            progressBar.setAttribute('aria-valuenow', percentage);
+        };
+        updateProgress();
+
+        // Render sections and questions
+        const accordion = document.getElementById('surveyAccordion');
+        sections.forEach((section, sectionIndex) => {
+            const accordionItem = document.createElement('div');
+            accordionItem.className = 'accordion-item';
+            accordionItem.innerHTML = `
+                <h2 class="accordion-header" id="heading${sectionIndex}">
+                    <button class="accordion-button ${sectionIndex === 0 ? '' : 'collapsed'}" type="button" data-bs-toggle="collapse" data-bs-target="#collapse${sectionIndex}" aria-expanded="${sectionIndex === 0 ? 'true' : 'false'}" aria-controls="collapse${sectionIndex}">
+                        ${section.name}
+                    </button>
+                </h2>
+                <div id="collapse${sectionIndex}" class="accordion-collapse collapse ${sectionIndex === 0 ? 'show' : ''}" aria-labelledby="heading${sectionIndex}" data-bs-parent="#surveyAccordion">
+                    <div class="accordion-body"></div>
+                </div>
+            `;
+            const accordionBody = accordionItem.querySelector('.accordion-body');
+            section.questions.forEach((question, questionIndex) => {
+                const card = document.createElement('div');
+                card.className = 'card question-card mb-3';
+                card.style.setProperty('--card-index', questionIndex + 1);
+                card.innerHTML = `
+                    <div class="card-body">
+                        <h5 class="card-title">${question.id}. ${question.text}</h5>
+                        <div class="btn-group" role="group">
+                            <input type="radio" class="btn-check" name="q${question.id}" id="q${question.id}-agree" autocomplete="off" ${responses[`q${question.id}`] === 'agree' ? 'checked' : ''}>
+                            <label class="btn btn-outline-primary" for="q${question.id}-agree">Agree</label>
+                            <input type="radio" class="btn-check" name="q${question.id}" id="q${question.id}-disagree" autocomplete="off" ${responses[`q${question.id}`] === 'disagree' ? 'checked' : ''}>
+                            <label class="btn btn-outline-primary" for="q${question.id}-disagree">Disagree</label>
+                            <input type="radio" class="btn-check" name="q${question.id}" id="q${question.id}-notsure" autocomplete="off" ${responses[`q${question.id}`] === 'notsure' ? 'checked' : ''}>
+                            <label class="btn btn-outline-primary" for="q${question.id}-notsure">I'm Not Sure</label>
+                        </div>
+                    </div>
+                `;
+                accordionBody.appendChild(card);
+            });
+            accordion.appendChild(accordionItem);
+        });
+
+        // Handle response changes
+        document.querySelectorAll('input[type="radio"]').forEach(input => {
+            input.addEventListener('change', (e) => {
+                const questionId = e.target.name;
+                const value = e.target.id.split('-')[1];
+                const prevValue = responses[questionId];
+                const sectionIndex = sections.findIndex(section => section.questions.some(q => `q${q.id}` === questionId));
+
+                // Update section counts
+                if (prevValue) {
+                    sectionCounts[sectionIndex][prevValue]--;
+                }
+                sectionCounts[sectionIndex][value]++;
+                responses[questionId] = value;
+
+                // Save to localStorage
+                localStorage.setItem('survey-responses', JSON.stringify(responses));
+                localStorage.setItem('survey-counts', JSON.stringify(sectionCounts));
+
+                // Update progress
+                updateProgress();
+            });
+        });
+
+        // Submit survey and show results
+        function submitSurvey() {
+            if (Object.keys(responses).length < 100) {
+                alert('Please answer all 100 questions before submitting.');
+                return;
+            }
+
+            let total = { agree: 0, disagree: 0, notSure: 0 };
+            let sectionResults = '';
+            sectionCounts.forEach(section => {
+                sectionResults += `
+                    <h6>${section.name}</h6>
+                    <p>Agree: ${section.agree}</p>
+                    <p>Disagree: ${section.disagree}</p>
+                    <p>I'm Not Sure: ${section.notSure}</p>
+                `;
+                total.agree += section.agree;
+                total.disagree += section.disagree;
+                total.notSure += section.notSure;
+            });
+
+            document.getElementById('section-results').innerHTML = sectionResults;
+            document.getElementById('total-agree').textContent = total.agree;
+            document.getElementById('total-disagree').textContent = total.disagree;
+            document.getElementById('total-notsure').textContent = total.notSure;
+
+            const modal = new bootstrap.Modal(document.getElementById('resultsModal'));
+            modal.show();
+        }
+
+        // Reset survey
+        function resetSurvey() {
+            if (confirm('Are you sure you want to reset all responses?')) {
+                localStorage.removeItem('survey-responses');
+                localStorage.removeItem('survey-counts');
+                location.reload();
+            }
+        }
+
+        // Download responses as JSON
+        function downloadResponses() {
+            const data = {
+                responses,
+                sectionCounts
+            };
+            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'survey-responses.json';
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+    </script>
+</body>
+</html>
