@@ -36,7 +36,7 @@
 </head>
 <body>
     <!-- Navbar -->
-    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+    <nav class="navbar navbar-expand-lg navbar-light bg-light ">
         <div class="container-fluid">
             <a class="navbar-brand" href="#">Freedom Cell Survey 2020</a>
         </div>
@@ -44,15 +44,17 @@
 
     <!-- Main Content -->
     <div class="container my-5">
-        <h1 class="text-center mb-4">2020 Freedom Cell Survey</h1>
-        <!-- Progress Bar -->
-        <div class="mb-4">
-            <h5>Progress: <span id="progress-text">0/100 questions answered</span></h5>
-            <div class="progress">
-                <div id="progress-bar" class="progress-bar" role="progressbar" style="width: 0%;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">0%</div>
+        <header>
+            <h1 class="text-center mb-4">2020 Freedom Cell Survey</h1>
+            <!-- Progress Bar -->
+            <div class="mb-4">
+                <h5>Progress: <span id="progress-text">0/100 questions answered</span></h5>
+                <div class="progress">
+                    <div id="progress-bar" class="progress-bar" role="progressbar" style="width: 0%;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">0%</div>
+                </div>
             </div>
-        </div>
-        <div class="accordion" id="surveyAccordion"></div>
+        </header>
+    <div class="accordion" id="surveyAccordion"></div>
         <!-- Action Buttons -->
         <div class="text-center mt-4">
             <button class="btn btn-primary me-2" onclick="submitSurvey()">Submit Survey</button>
@@ -380,6 +382,27 @@
             a.click();
             URL.revokeObjectURL(url);
         }
+// Scroll to the first question when an accordion is expanded
+document.querySelectorAll('.accordion-collapse').forEach(collapse => {
+  collapse.addEventListener('shown.bs.collapse', () => {
+    const firstQuestionCard = collapse.querySelector('.accordion-body .question-card:first-child');
+
+    if (firstQuestionCard) {
+      // Delay scroll to account for animation (0.5s duration + 0.1s delay for first card)
+      setTimeout(() => {
+        // Optional: Adjust for fixed header
+        const header = document.querySelector('header'); // Replace with your header selector
+        const headerHeight = header ? header.offsetHeight : 0;
+        const scrollPosition = firstQuestionCard.getBoundingClientRect().top + window.scrollY - headerHeight;
+        window.scrollTo({
+          top: scrollPosition,
+          behavior: 'smooth'
+        });
+      }, 100); // 600ms to match 0.5s animation + 0.1s delay
+    }
+  });
+});
+
     </script>
 </body>
 </html>
