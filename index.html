@@ -41,7 +41,6 @@
             <a class="navbar-brand" href="#">Freedom Cell Survey 2020</a>
         </div>
     </nav>
-
     <!-- Main Content -->
     <div class="container my-5">
         <header>
@@ -62,7 +61,6 @@
             <button class="btn btn-secondary" onclick="downloadResponses()">Download Responses</button>
         </div>
     </div>
-
     <!-- Results Modal -->
     <div class="modal fade" id="resultsModal" tabindex="-1" aria-labelledby="resultsModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-lg">
@@ -78,7 +76,6 @@
                     <h6>Total Across All Sections</h6>
                     <p>Agree: <span id="total-agree">0</span></p>
                     <p>Disagree: <span id="total-disagree">0</span></p>
-                    <p>I'm Not Sure: <span id="total-notsure">0</span></p>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
@@ -86,7 +83,6 @@
             </div>
         </div>
     </div>
-
     <!-- Bootstrap 5 JS and Popper.js -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script>
@@ -228,32 +224,26 @@
                 ]
             }
         ];
-
         // Response tracking
         let responses = {};
         let sectionCounts = sections.map(section => ({
             name: section.name,
             agree: 0,
-            disagree: 0,
-            notSure: 0
+            disagree: 0
         }));
-
         // Load saved responses from localStorage and initialize counts
         const savedResponses = JSON.parse(localStorage.getItem('survey-responses')) || {};
         responses = { ...savedResponses };
-
         // Initialize section counts based on saved responses
         Object.keys(savedResponses).forEach(questionId => {
             const value = savedResponses[questionId];
             const sectionIndex = sections.findIndex(section => section.questions.some(q => `q${q.id}` === questionId));
-            if (sectionIndex !== -1 && value) {
+            if (sectionIndex !== -1 && value && (value === 'agree' || value === 'disagree')) {
                 sectionCounts[sectionIndex][value]++;
             }
         });
-
         // Save initial section counts to localStorage
         localStorage.setItem('survey-counts', JSON.stringify(sectionCounts));
-
         // Update progress bar
         const updateProgress = () => {
             const answered = Object.keys(responses).length;
@@ -266,7 +256,6 @@
             progressBar.setAttribute('aria-valuenow', percentage);
         };
         updateProgress();
-
         // Render sections and questions
         const accordion = document.getElementById('surveyAccordion');
         sections.forEach((section, sectionIndex) => {
@@ -295,8 +284,6 @@
                             <label class="btn btn-outline-primary" for="q${question.id}-agree">Agree</label>
                             <input type="radio" class="btn-check" name="q${question.id}" id="q${question.id}-disagree" autocomplete="off" ${responses[`q${question.id}`] === 'disagree' ? 'checked' : ''}>
                             <label class="btn btn-outline-primary" for="q${question.id}-disagree">Disagree</label>
-                            <input type="radio" class="btn-check" name="q${question.id}" id="q${question.id}-notsure" autocomplete="off" ${responses[`q${question.id}`] === 'notsure' ? 'checked' : ''}>
-                            <label class="btn btn-outline-primary" for="q${question.id}-notsure">I'm Not Sure</label>
                         </div>
                     </div>
                 `;
@@ -304,7 +291,6 @@
             });
             accordion.appendChild(accordionItem);
         });
-
         // Handle response changes
         document.querySelectorAll('input[type="radio"]').forEach(input => {
             input.addEventListener('change', (e) => {
@@ -312,53 +298,42 @@
                 const value = e.target.id.split('-')[1];
                 const prevValue = responses[questionId];
                 const sectionIndex = sections.findIndex(section => section.questions.some(q => `q${q.id}` === questionId));
-
                 // Update section counts
                 if (prevValue) {
                     sectionCounts[sectionIndex][prevValue]--;
                 }
                 sectionCounts[sectionIndex][value]++;
                 responses[questionId] = value;
-
                 // Save to localStorage
                 localStorage.setItem('survey-responses', JSON.stringify(responses));
                 localStorage.setItem('survey-counts', JSON.stringify(sectionCounts));
-
                 // Update progress
                 updateProgress();
             });
         });
-
         // Submit survey and show results
         function submitSurvey() {
             if (Object.keys(responses).length < 100) {
                 alert('Please answer all 100 questions before submitting.');
                 return;
             }
-
-            let total = { agree: 0, disagree: 0, notSure: 0 };
+            let total = { agree: 0, disagree: 0 };
             let sectionResults = '';
             sectionCounts.forEach(section => {
                 sectionResults += `
                     <h6>${section.name}</h6>
                     <p>Agree: ${section.agree}</p>
                     <p>Disagree: ${section.disagree}</p>
-                    <p>I'm Not Sure: ${section.notSure}</p>
                 `;
                 total.agree += section.agree;
                 total.disagree += section.disagree;
-                total.notSure += section.notSure;
             });
-
             document.getElementById('section-results').innerHTML = sectionResults;
             document.getElementById('total-agree').textContent = total.agree;
             document.getElementById('total-disagree').textContent = total.disagree;
-            document.getElementById('total-notsure').textContent = total.notSure;
-
             const modal = new bootstrap.Modal(document.getElementById('resultsModal'));
             modal.show();
         }
-
         // Reset survey
         function resetSurvey() {
             if (confirm('Are you sure you want to reset all responses?')) {
@@ -367,7 +342,6 @@
                 location.reload();
             }
         }
-
         // Download responses as JSON
         function downloadResponses() {
             const data = {
@@ -382,27 +356,25 @@
             a.click();
             URL.revokeObjectURL(url);
         }
-// Scroll to the first question when an accordion is expanded
-document.querySelectorAll('.accordion-collapse').forEach(collapse => {
-  collapse.addEventListener('shown.bs.collapse', () => {
-    const firstQuestionCard = collapse.querySelector('.accordion-body .question-card:first-child');
-
-    if (firstQuestionCard) {
-      // Delay scroll to account for animation (0.5s duration + 0.1s delay for first card)
-      setTimeout(() => {
-        // Optional: Adjust for fixed header
-        const header = document.querySelector('header'); // Replace with your header selector
-        const headerHeight = header ? header.offsetHeight : 0;
-        const scrollPosition = firstQuestionCard.getBoundingClientRect().top + window.scrollY - headerHeight;
-        window.scrollTo({
-          top: scrollPosition,
-          behavior: 'smooth'
+        // Scroll to the first question when an accordion is expanded
+        document.querySelectorAll('.accordion-collapse').forEach(collapse => {
+            collapse.addEventListener('shown.bs.collapse', () => {
+                const firstQuestionCard = collapse.querySelector('.accordion-body .question-card:first-child');
+                if (firstQuestionCard) {
+                    // Delay scroll to account for animation (0.5s duration + 0.1s delay for first card)
+                    setTimeout(() => {
+                        // Optional: Adjust for fixed header
+                        const header = document.querySelector('header'); // Replace with your header selector
+                        const headerHeight = header ? header.offsetHeight : 0;
+                        const scrollPosition = firstQuestionCard.getBoundingClientRect().top + window.scrollY - headerHeight;
+                        window.scrollTo({
+                            top: scrollPosition,
+                            behavior: 'smooth'
+                        });
+                    }, 100); // 600ms to match 0.5s animation + 0.1s delay
+                }
+            });
         });
-      }, 100); // 600ms to match 0.5s animation + 0.1s delay
-    }
-  });
-});
-
     </script>
 </body>
 </html>
