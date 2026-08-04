@@ -356,23 +356,24 @@
             a.click();
             URL.revokeObjectURL(url);
         }
-        // Scroll to the first question when an accordion is expanded
-        // Better mobile-friendly scroll when a section is expanded
-        document.querySelectorAll('.accordion-collapse').forEach(collapse => {
-            collapse.addEventListener('shown.bs.collapse', (e) => {
-                // Small delay so Bootstrap finishes its height animation
-                setTimeout(() => {
-                    // Prefer scrolling the *header* into view — much more reliable on mobile
-                    const header = e.target.previousElementSibling; // .accordion-header
-                    if (header) {
-                        header.scrollIntoView({
-                            behavior: 'smooth',
-                            block: 'start'
-                        });
-                    }
-                }, 50);
-            });
-        });
+
+        // // Scroll to the first question when an accordion is expanded
+        // // Better mobile-friendly scroll when a section is expanded
+        // document.querySelectorAll('.accordion-collapse').forEach(collapse => {
+        //     collapse.addEventListener('shown.bs.collapse', (e) => {
+        //         // Small delay so Bootstrap finishes its height animation
+        //         setTimeout(() => {
+        //             // Prefer scrolling the *header* into view — much more reliable on mobile
+        //             const header = e.target.previousElementSibling; // .accordion-header
+        //             if (header) {
+        //                 header.scrollIntoView({
+        //                     behavior: 'smooth',
+        //                     block: 'start'
+        //                 });
+        //             }
+        //         }, 50);
+        //     });
+        // });
 
 
         // document.querySelectorAll('.accordion-collapse').forEach(collapse => {
