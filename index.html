@@ -242,6 +242,14 @@
                 sectionCounts[sectionIndex][value]++;
             }
         });
+
+        // Prevent sticky focus on accordion buttons (common mobile problem)
+        document.querySelectorAll('.accordion-button').forEach(btn => {
+            btn.addEventListener('click', function () {
+                this.blur();
+            });
+        });
+
         // Save initial section counts to localStorage
         localStorage.setItem('survey-counts', JSON.stringify(sectionCounts));
         // Update progress bar
@@ -356,6 +364,30 @@
             a.click();
             URL.revokeObjectURL(url);
         }
+
+        // More cross-browser reliable version
+        document.querySelectorAll('.accordion-collapse').forEach(collapse => {
+            collapse.addEventListener('shown.bs.collapse', function (e) {
+                const header = this.previousElementSibling;
+                if (!header) return;
+
+                // Blur the button to prevent sticky focus issues on mobile
+                const button = header.querySelector('.accordion-button');
+                if (button) button.blur();
+
+                // Wait longer + use requestAnimationFrame for better timing
+                setTimeout(() => {
+                    requestAnimationFrame(() => {
+                        const y = header.getBoundingClientRect().top + window.pageYOffset - 10;
+
+                        window.scrollTo({
+                            top: y,
+                            behavior: 'smooth'
+                        });
+                    });
+                }, 120);
+            });
+        });
 
         // // Scroll to the first question when an accordion is expanded
         // // Better mobile-friendly scroll when a section is expanded
