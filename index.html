@@ -75,7 +75,7 @@
                     <hr>
                     <h6>Total Across All Sections</h6>
                     <p>Agree: <span id="total-agree">0</span></p>
-                    <p>Disagree: <span id="total-disagree">0</span></p>
+                    <p>Do Not Agree: <span id="total-disagree">0</span></p>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
@@ -283,7 +283,7 @@
                             <input type="radio" class="btn-check" name="q${question.id}" id="q${question.id}-agree" autocomplete="off" ${responses[`q${question.id}`] === 'agree' ? 'checked' : ''}>
                             <label class="btn btn-outline-primary" for="q${question.id}-agree">Agree</label>
                             <input type="radio" class="btn-check" name="q${question.id}" id="q${question.id}-disagree" autocomplete="off" ${responses[`q${question.id}`] === 'disagree' ? 'checked' : ''}>
-                            <label class="btn btn-outline-primary" for="q${question.id}-disagree">Disagree</label>
+                            <label class="btn btn-outline-primary" for="q${question.id}-disagree">Do Not Agree</label>
                         </div>
                     </div>
                 `;
@@ -323,7 +323,7 @@
                 sectionResults += `
                     <h6>${section.name}</h6>
                     <p>Agree: ${section.agree}</p>
-                    <p>Disagree: ${section.disagree}</p>
+                    <p>Do Not Agree: ${section.disagree}</p>
                 `;
                 total.agree += section.agree;
                 total.disagree += section.disagree;
