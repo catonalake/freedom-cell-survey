@@ -267,7 +267,7 @@
                         ${section.name}
                     </button>
                 </h2>
-                <div id="collapse${sectionIndex}" class="accordion-collapse collapse ${sectionIndex === 0 ? 'show' : ''}" aria-labelledby="heading${sectionIndex}" >
+                <div id="collapse${sectionIndex}" class="accordion-collapse collapse ${sectionIndex === 0 ? 'show' : ''}" aria-labelledby="heading${sectionIndex}" data-bs-parent="#surveyAccordion">
                     <div class="accordion-body"></div>
                 </div>
             `;
@@ -357,24 +357,44 @@
             URL.revokeObjectURL(url);
         }
         // Scroll to the first question when an accordion is expanded
+        // Better mobile-friendly scroll when a section is expanded
         document.querySelectorAll('.accordion-collapse').forEach(collapse => {
-            collapse.addEventListener('shown.bs.collapse', () => {
-                const firstQuestionCard = collapse.querySelector('.accordion-body .question-card:first-child');
-                if (firstQuestionCard) {
-                    // Delay scroll to account for animation (0.5s duration + 0.1s delay for first card)
-                    setTimeout(() => {
-                        // Optional: Adjust for fixed header
-                        const header = document.querySelector('header'); // Replace with your header selector
-                        const headerHeight = header ? header.offsetHeight : 0;
-                        const scrollPosition = firstQuestionCard.getBoundingClientRect().top + window.scrollY - headerHeight;
-                        window.scrollTo({
-                            top: scrollPosition,
-                            behavior: 'smooth'
+            collapse.addEventListener('shown.bs.collapse', (e) => {
+                // Small delay so Bootstrap finishes its height animation
+                setTimeout(() => {
+                    // Prefer scrolling the *header* into view — much more reliable on mobile
+                    const header = e.target.previousElementSibling; // .accordion-header
+                    if (header) {
+                        header.scrollIntoView({
+                            behavior: 'smooth',
+                            block: 'start'
                         });
-                    }, 100); // 600ms to match 0.5s animation + 0.1s delay
-                }
+                    }
+                }, 50);
             });
         });
-    </script>
+
+
+        // document.querySelectorAll('.accordion-collapse').forEach(collapse => {
+        //     collapse.addEventListener('shown.bs.collapse', () => {
+        //         const firstQuestionCard = collapse.querySelector('.accordion-body .question-card:first-child');
+        //         if (firstQuestionCard) {
+        //             // Delay scroll to account for animation (0.5s duration + 0.1s delay for first card)
+        //             setTimeout(() => {
+        //                 // Optional: Adjust for fixed header
+        //                 const header = document.querySelector('header'); // Replace with your header selector
+        //                 const headerHeight = header ? header.offsetHeight : 0;
+        //                 const scrollPosition = firstQuestionCard.getBoundingClientRect().top + window.scrollY - headerHeight;
+        //                 window.scrollTo({
+        //                     top: scrollPosition,
+        //                     behavior: 'smooth'
+        //                 });
+        //             }, 100); // 600ms to match 0.5s animation + 0.1s delay
+        //         }
+        //     });
+        // });
+
+
+</script>
 </body>
 </html>
